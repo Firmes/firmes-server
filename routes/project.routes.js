@@ -40,7 +40,7 @@ router.post('/create-new-project', async (req, res) => {
         const project_info = await pool
         .query(`INSERT INTO firmes.project_info (project_title, project_client, project_description, project_creation_year, project_video_url, project_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [project_title, project_client, project_description, Number(project_year), project_videoURL, projectTypeId]);
 
-        for (let imageInfo of images ) {
+        for (let imageInfo of projectImages ) {
             await pool
                 .query(`INSERT INTO firmes.project_image_url (project_info_id_fk, project_image_url, image_is_portrait) VALUES ($1, $2, $3)`, [project_info.rows[0].project_info_id, imageInfo.imageUrl, imageInfo.image_is_portrait]);
         }

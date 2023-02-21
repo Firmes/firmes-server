@@ -9,7 +9,7 @@ router.get('/get-all-projects', async (req, res) => {
         return res.status(200).send(rows);
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
 });
 
@@ -26,25 +26,28 @@ router.get('/get-single-project/:projectId', async (req, res) => {
         return res.status(200).send(projectData);
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
 });
 
 router.post('/create-new-project', async (req, res) => {
     try {
-        const { project_title, project_client, project_description, project_year, project_videoURL, project_type, images } = req.body;
-        const project_info = await pool
-            .query(`INSERT INTO firmes.project_info (project_title, project_client, project_description, project_creation_year, project_video_url, project_type) RETURNING *`, [project_title, project_client, project_description, project_year, project_videoURL, project_type]);
+        const { project_title, project_client, project_description, project_year, project_videoURL, project_type } = req.body.projectDetails;
+        const { projectImages } = req.body;
 
-        for (let imageInfo of images ) {
+        const project_info = await pool
+        .query(`INSERT INTO firmes.project_info (project_title, project_client, project_description, project_creation_year, project_video_url, project_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [project_title, project_client, project_description, Number(project_year), project_videoURL, Number(project_type)]);
+
+        for (let imageInfo of projectImages ) {
             await pool
-                .query(`INSERT INTO firmes.project_image_url (project_info_id_fk, project_image_url)`, [project_info.rows[0].project_info_id, imageInfo.imageUrl]);
+                .query(`INSERT INTO firmes.project_image_url (project_info_id_fk, project_image_url) VALUES ($1, $2)`, [project_info.rows[0].project_info_id, imageInfo.imageUrl]);
         }
 
         return res.status(200).send(project_info.rows[0]);
+
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
 });
 
@@ -54,14 +57,14 @@ router.put('/edit-project/:projectId', async (req, res) => {
         const { title, client, description, creation_year, video_url, type, images } = req.body;
         const project_info = await pool
             .query(`UPDATE firmes.project_info SET (project_title, project_client, project_description, project_creation_year, project_video_url, project_type) WHERE project_id = ${projectId} RETURNING *`, [title, client, description, creation_year, video_url, type]);
-            
-            for (let imageInfo of images ) {
-                await pool
-                    .query(`UPDATE firmes.project_image_url SET (project_info_id_fk, project_image_url) WHERE image_id = ${imageInfo.image_id}`, [project_info.rows[0].project_info_id, imageInfo.imageUrl]);
-            }
+
+        for (let imageInfo of images) {
+            await pool
+                .query(`UPDATE firmes.project_image_url SET (project_info_id_fk, project_image_url) WHERE image_id = ${imageInfo.image_id}`, [project_info.rows[0].project_info_id, imageInfo.imageUrl]);
+        }
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
 });
 
@@ -69,56 +72,56 @@ router.delete('/delete-project/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
         const query = await pool.query(`DELETE FROM firmes.project_info WHERE project_id = ${projectId}`);
-        res.status(200).json({ message: 'Project deleted'});
+        res.status(200).json({ message: 'Project deleted' });
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
 });
 
 router.post('/upload-image', uploader.single('imageUrl'), (req, res) => {
     try {
         if (!req.file) {
-          res.status(400).json({ errorMessage: 'Please upload an image' });
-          return;
+            res.status(400).json({ errorMessage: 'Please upload an image' });
+            return;
         }
-      
+
         return res.status(200).json({ imageUrl: req.file.path });
-        
+
     } catch (error) {
         console.log(error)
-        return res.status(400).json({errorMessage: 'An internal error just occurred'});
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
     }
-  });
+});
 
-  router.post('/link-image-on-project', (req, res) => {
+router.post('/link-image-on-project', (req, res) => {
     try {
         const { imageUrl, project_id, image_dimension } = req.body;
         pool
             .query('INSERT INTO project_image_url VALUES (project_info_id, project_image_url)', [project_id, imageUrl])
     } catch (error) {
-        
+
     }
-  });
+});
 
-  router.put('/update-image', (req, res) => {
-      try {
-          
-      } catch (error) {
-          console.log(error)
-          return res.status(400).json({errorMessage: 'An internal error just occurred'});
-      }
-  });
+router.put('/update-image', (req, res) => {
+    try {
 
-  router.delete('/delete-image', async (req, res) => {
-      try {
-          const { image_id } = req.body;
-          const query = await pool.query(`DELETE FROM table WHERE image_id = ${image_id}`);
-          res.status(200).json({ message: 'Image deleted'});
-      } catch (error) {
-          console.log(error)
-          return res.status(400).json({errorMessage: 'An internal error just occurred'});
-      }
-  });
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
+    }
+});
 
-  module.exports = router;
+router.delete('/delete-image', async (req, res) => {
+    try {
+        const { image_id } = req.body;
+        const query = await pool.query(`DELETE FROM table WHERE image_id = ${image_id}`);
+        res.status(200).json({ message: 'Image deleted' });
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
+    }
+});
+
+module.exports = router;

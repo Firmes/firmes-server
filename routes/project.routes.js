@@ -6,8 +6,18 @@ const { getTypeId } = require('../utils/utils');
 
 router.get('/get-all-projects', async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM view');
-        return res.status(200).send(rows);
+        const { rows } = await pool.query('SELECT * FROM firmes.project_info_v');
+        const allProjectsData = [];
+        for (let projectInfo of rows) {
+            const projectImages = await pool.query(`SELECT * FROM firmes.project_image_url WHERE project_info_id_fk = ${projectInfo.project_info_id}`);
+            const projectWithImages = {
+                ...projectInfo,
+                project_images: projectImages.rows
+            };
+            allProjectsData.push(projectWithImages);
+        }
+
+        return res.status(200).send(allProjectsData);
     } catch (error) {
         console.log(error)
         return res.status(400).json({ errorMessage: 'An internal error just occurred' });
@@ -17,7 +27,7 @@ router.get('/get-all-projects', async (req, res) => {
 router.get('/get-single-project/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { rows } = await pool.query(`SELECT * FROM view WHERE project_id = ${projectId}`);
+        const { rows } = await pool.query(`SELECT * FROM firmes.project_info_v WHERE project_info_id = ${projectId}`);
         const [projectInfo] = rows;
         const projectImages = await pool.query(`SELECT * FROM firmes.project_image_url WHERE project_info_id_fk = ${projectId}`);
         const projectData = {

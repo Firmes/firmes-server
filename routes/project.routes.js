@@ -83,7 +83,7 @@ router.put('/edit-project/:projectId', async (req, res) => {
 router.delete('/delete-project/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
-        const query = await pool.query(`DELETE FROM firmes.project_info WHERE project_id = ${projectId}`);
+        const query = await pool.query(`DELETE FROM firmes.project_info WHERE project_info_id = ${projectId}`);
         res.status(200).json({ message: 'Project deleted' });
     } catch (error) {
         console.log(error)
@@ -91,14 +91,14 @@ router.delete('/delete-project/:projectId', async (req, res) => {
     }
 });
 
-router.post('/upload-image', uploader.single('imageUrl'), (req, res) => {
+router.post('/upload-image', uploader.single('project_image_url'), (req, res) => {
     try {
         if (!req.file) {
             res.status(400).json({ errorMessage: 'Please upload an image' });
             return;
         }
 
-        return res.status(200).json({ imageUrl: req.file.path });
+        return res.status(200).json({ project_image_url: req.file.path });
 
     } catch (error) {
         console.log(error)

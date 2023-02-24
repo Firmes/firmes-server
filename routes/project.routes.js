@@ -113,6 +113,17 @@ router.post('/upload-image', uploader.single('project_image_url'), (req, res) =>
     }
 });
 
+router.delete('/delete-image/:imageId', async (req, res) => {
+    try {
+        const { imageId } = req.params;
+        const query = await pool.query(`DELETE FROM firmes.project_image_url WHERE image_id = ${imageId}`);
+        res.status(200).json({ message: 'Image deleted' });
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json({ errorMessage: 'An internal error just occurred' });
+    }
+});
+
 router.post('/link-image-on-project', (req, res) => {
     try {
         const { imageUrl, project_id, image_dimension } = req.body;

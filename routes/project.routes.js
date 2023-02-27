@@ -46,8 +46,7 @@ router.post('/create-new-project', async (req, res) => {
         const { project_title, project_client, project_description, project_year, project_videoURL, project_type } = req.body.projectDetails;
         const { projectImages } = req.body;
 
-        //Error with projectTypeId, all the other values are saved correctly
-        const projectTypeId = getTypeId(project_type, pool);
+        const projectTypeId = await getTypeId(project_type, pool);
         const project_info = await pool
             .query(`INSERT INTO firmes.project_info (project_title, project_client, project_description, project_creation_year, project_video_url, project_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [project_title, project_client, project_description, Number(project_year), project_videoURL, projectTypeId]);
 

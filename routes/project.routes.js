@@ -68,10 +68,11 @@ router.put('/edit-project/:projectId', async (req, res) => {
         const { projectId } = req.params;
         const { project_title, project_client, project_description, project_year, project_videoURL, project_type } = req.body.projectDetails;
         const { projectImages } = req.body;
+        const projectTypeId = await getTypeId(project_type, pool);
 
         //Check project type, add existing type check?, all the other values are saved correctly
         const project_info = await pool
-            .query(`UPDATE firmes.project_info SET project_title = '${project_title}', project_client = '${project_client}', project_description = '${project_description}', project_creation_year = ${Number(project_year)}, project_video_url = '${project_videoURL}', project_type = ${project_type} WHERE project_info_id = ${projectId} RETURNING *`);
+            .query(`UPDATE firmes.project_info SET project_title = '${project_title}', project_client = '${project_client}', project_description = '${project_description}', project_creation_year = ${Number(project_year)}, project_video_url = '${project_videoURL}', project_type = ${projectTypeId} WHERE project_info_id = ${projectId} RETURNING *`);
 
         for (let imageInfo of projectImages) {
             await pool

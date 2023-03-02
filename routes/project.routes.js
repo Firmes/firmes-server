@@ -75,11 +75,17 @@ router.put('/edit-project/:projectId', async (req, res) => {
             .query(`UPDATE firmes.project_info SET project_title = '${project_title}', project_client = '${project_client}', project_description = '${project_description}', project_creation_year = ${Number(project_year)}, project_video_url = '${project_videoURL}', project_type = ${projectTypeId} WHERE project_info_id = ${projectId} RETURNING *`);
 
         for (let imageInfo of projectImages) {
-            await pool
-                .query(`UPDATE firmes.project_image_url SET project_info_id_fk = ${project_info.rows[0].project_info_id}, project_image_url = '${imageInfo.project_image_url}', image_is_portrait = ${imageInfo.image_is_portrait} WHERE image_id = ${imageInfo.image_id}`);
+
+            if (imageInfo.image_id) {
+                await pool
+                    .query(`UPDATE firmes.project_image_url SET project_info_id_fk = ${project_info.rows[0].project_info_id}, project_image_url = '${imageInfo.project_image_url}', image_is_portrait = ${imageInfo.image_is_portrait} WHERE image_id = ${imageInfo.image_id}`);
+            } else {
+                await pool
+                    .query(`INSERT INTO firmes.project_image_url (project_info_id_fk, project_image_url, image_is_portrait) VALUES ($1, $2, $3)`, [project_info.rows[0].project_info_id, imageInfo.project_image_url, imageInfo.image_is_portrait]);
+            }
         }
 
-        return res.status(200).json({message: 'Project updated'});
+        return res.status(200).json({ message: 'Project updated' });
 
     } catch (error) {
         console.log(error)

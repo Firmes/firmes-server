@@ -6,6 +6,8 @@ router.post('/save-contact-details', async (req, res) => {
     try {
         const { user_firstname, user_lastname, user_email, message_subject, message_text } = req.body;
 
+        if(!user_email || !message_subject || !message_text) return res.status(400).json({errorMessage: 'Please, fill all the required fields'})
+        
         const validateEmailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 
         if(!validateEmailRegex.test(user_email)) return res.status(400).json({ errorMessage: 'It seems there is a mistake on the email.'});

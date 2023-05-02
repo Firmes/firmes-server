@@ -68,7 +68,13 @@ router.post('/save-contact-hubspot', (req, res, next) => {
     hubspotClient.crm.contacts.basicApi
         .create(contactObj)
         .then(response => res.status(200).send(response))
-        .catch(() => res.status(500).json({ errorMessage: 'We are experiencing an internal error. Try later please.' }));
+        .catch((err) =>{
+            if(err.body.message.startsWith('Contact already exists')){
+                res.status(500).json({ errorMessage: 'Contact already post' })
+            }
+            
+            res.status(500).json({ errorMessage: 'We are experiencing an internal error. Try later please.' })
+        } )
 })
 
 module.exports = router;

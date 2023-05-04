@@ -10,8 +10,10 @@ router.get('/get-all-projects', async (req, res) => {
         const allProjectsData = [];
         for (let projectInfo of rows) {
             const projectImages = await pool.query(`SELECT * FROM firmes.project_image_url WHERE project_info_id_fk = ${projectInfo.project_info_id}`);
+            const projectTypeRows = await pool.query(`SELECT project_type_description FROM firmes.project_type WHERE project_type_id = ${projectInfo.project_type}`)
             const projectWithImages = {
                 ...projectInfo,
+                projectType: projectTypeRows.rows[0].project_type_description,
                 project_images: projectImages.rows
             };
             allProjectsData.push(projectWithImages);
@@ -29,11 +31,14 @@ router.get('/get-single-project/:projectId', async (req, res) => {
         const { projectId } = req.params;
         const { rows } = await pool.query(`SELECT * FROM firmes.project_info WHERE project_info_id = ${projectId}`);
         const [projectInfo] = rows;
+        const projectTypeRows = await pool.query(`SELECT project_type_description FROM firmes.project_type WHERE project_type_id = ${projectInfo.project_type}`)
         const projectImages = await pool.query(`SELECT * FROM firmes.project_image_url WHERE project_info_id_fk = ${projectId}`);
         const projectData = {
             ...projectInfo,
+            projectType: projectTypeRows.rows[0].project_type_description,
             project_images: projectImages.rows
         }
+
         return res.status(200).send(projectData);
     } catch (error) {
         console.log(error)

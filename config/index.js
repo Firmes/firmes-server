@@ -21,10 +21,12 @@ module.exports = (app) => {
   // Services like Fly use something called a proxy and you need to add this to your server
   app.set("trust proxy", 1);
 
+  const FRONTEND_URL = "http://localhost:5173" || process.env.ORIGIN
+
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: 'https://firmes.netlify.app'
+      origin: [FRONTEND_URL]
     })
   );
 
